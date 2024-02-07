@@ -2,6 +2,9 @@ const puppeteer = require("puppeteer");
 require("dotenv").config();
 
 const scrapeLogic = async (res) => {
+  const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+  puppeteer.use(StealthPlugin())
+  
   const browser = await puppeteer.launch({
     args: [
       "--disable-setuid-sandbox",
@@ -19,7 +22,7 @@ const scrapeLogic = async (res) => {
         'https://scon.stj.jus.br/SCON/'
 
   const search = "Operação Lava Jato"
-  
+
   try {
     const page = await browser.newPage()
     await page.goto(url, {timeout: 60000})
