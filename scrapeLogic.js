@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer-extra'
+const puppeteer = require( 'puppeteer-extra')
 require("dotenv").config();
 
 const scrapeLogic = async (res) => {
