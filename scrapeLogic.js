@@ -14,6 +14,12 @@ const scrapeLogic = async (res) => {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
+
+  const url = 
+        'https://scon.stj.jus.br/SCON/'
+
+  const search = "Operação Lava Jato"
+  
   try {
     const page = await browser.newPage()
     await page.goto(url, {timeout: 60000})
