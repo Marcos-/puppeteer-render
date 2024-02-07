@@ -6,6 +6,8 @@ const scrapeLogic = async (res) => {
   puppeteer.use(StealthPlugin())
   
   const browser = await puppeteer.launch({
+    headless: 'new',
+    timeout: 120000,
     args: [
       "--disable-setuid-sandbox",
       "--no-sandbox",
@@ -58,8 +60,10 @@ const scrapeLogic = async (res) => {
     console.error(e);
     res.send(`Something went wrong while running Puppeteer: ${e}`);
   } finally {
-    await browser.close();
-  }
+    if (browser) {
+        await browser.close()
+    }
+}
 };
 
 module.exports = { scrapeLogic };
