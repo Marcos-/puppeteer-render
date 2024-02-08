@@ -2,7 +2,6 @@ const puppeteer = require( 'puppeteer-extra')
 require("dotenv").config();
 
 const scrapeLogic = async (req, res) => {
-  const body = req.body;
   
   if (req.method != "POST") {
     res.status(405).send("Method Not Allowed");
@@ -13,6 +12,7 @@ const scrapeLogic = async (req, res) => {
   puppeteer.use(StealthPlugin())
   
   const browser = await puppeteer.launch({
+    headless: 'new',
     args: [
       "--disable-setuid-sandbox",
       "--no-sandbox",
@@ -28,7 +28,7 @@ const scrapeLogic = async (req, res) => {
   const url = 
         'https://scon.stj.jus.br/SCON/'
 
-  const search = body.search
+  const search = req.body.search
 
   if (!search) {
     res.status(400).send("Bad Request: Missing search parameter");
@@ -38,16 +38,18 @@ const scrapeLogic = async (req, res) => {
   try {
     const page = await browser.newPage()
     await page.goto(url, {timeout: 60000})
+    await page.waitForTimeout(5000)
     await page.waitForSelector('button.icofont-ui-search', {timeout: 60000})
     // Fill the search box
     await page.type('#pesquisaLivre', search)
+    await page.waitForTimeout(1000)
     await page.click('button.icofont-ui-search')
-
+    await page.waitForTimeout(1500)
     await page.waitForSelector('.navegacaoDocumento')
 
     await page.select('#qtdDocsPagina', '50')
 
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(5000);
 
     // Wait for the search results page to load and display the results
     await page.waitForSelector('.listadocumentos > div.documento')
