@@ -1,9 +1,10 @@
 const puppeteer = require( 'puppeteer-extra')
 require("dotenv").config();
 
-const scrapeLogic = async (res) => {
+const scrapeLogic = async (req, res) => {
+  const body = req.body;
   
-  if (req.method !== "POST") {
+  if (req.method != "POST") {
     res.status(405).send("Method Not Allowed");
     return;
   }
@@ -27,7 +28,7 @@ const scrapeLogic = async (res) => {
   const url = 
         'https://scon.stj.jus.br/SCON/'
 
-  const search = req.body.search
+  const search = body.search
 
   if (!search) {
     res.status(400).send("Bad Request: Missing search parameter");
@@ -37,9 +38,7 @@ const scrapeLogic = async (res) => {
   try {
     const page = await browser.newPage()
     await page.goto(url, {timeout: 60000})
-    // print
-    await page.screenshot({ path: 'example.png' })
-    await page.waitForSelector('button.icofont-ui-search')
+    await page.waitForSelector('button.icofont-ui-search', {timeout: 60000})
     // Fill the search box
     await page.type('#pesquisaLivre', search)
     await page.click('button.icofont-ui-search')

@@ -1,11 +1,15 @@
 const express = require("express");
 const { scrapeLogic } = require("./scrapeLogic");
 const app = express();
+var bodyParser = require('body-parser')
 
 const PORT = process.env.PORT || 3000;
 
-app.get("/scrape", (req, res) => {
-  scrapeLogic(res);
+var jsonParser = bodyParser.json()
+app.use(bodyParser.json());
+
+app.post("/scrape", jsonParser, (req, res) => {
+  scrapeLogic(req, res);
 });
 
 app.get("/", (req, res) => {
