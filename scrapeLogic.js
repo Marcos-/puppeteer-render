@@ -16,7 +16,6 @@ const scrapeLogic = async (req, res) => {
     args: [
       "--disable-setuid-sandbox",
       "--no-sandbox",
-      "--single-process",
       "--no-zygote",
     ],
     executablePath:
@@ -71,7 +70,8 @@ const scrapeLogic = async (req, res) => {
     console.error(e);
     res.send(`Something went wrong while running Puppeteer: ${e}`);
   } finally {
-    await browser.close();
+    if (browser)
+      await browser.close();
   }
 };
 
