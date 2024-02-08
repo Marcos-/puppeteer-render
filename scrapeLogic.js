@@ -6,8 +6,6 @@ const scrapeLogic = async (res) => {
   puppeteer.use(StealthPlugin())
   
   const browser = await puppeteer.launch({
-    headless: 'new',
-    timeout: 120000,
     args: [
       "--disable-setuid-sandbox",
       "--no-sandbox",
@@ -28,6 +26,8 @@ const scrapeLogic = async (res) => {
   try {
     const page = await browser.newPage()
     await page.goto(url, {timeout: 60000})
+    // print
+    await page.screenshot({ path: 'example.png' })
     await page.waitForSelector('button.icofont-ui-search')
     // Fill the search box
     await page.type('#pesquisaLivre', search)
@@ -60,10 +60,8 @@ const scrapeLogic = async (res) => {
     console.error(e);
     res.send(`Something went wrong while running Puppeteer: ${e}`);
   } finally {
-    if (browser) {
-        await browser.close()
-    }
-}
+    await browser.close();
+  }
 };
 
 module.exports = { scrapeLogic };
