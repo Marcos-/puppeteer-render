@@ -12,9 +12,10 @@ const scrapeLogic = async (req, res) => {
   puppeteer.use(StealthPlugin())
   
   const browser = await puppeteer.launch({
-    headless: 'new',
+    headless: 'shell',
     args: [
       "--disable-setuid-sandbox",
+      '--disable-dev-shm-usage',
       "--no-sandbox",
       "--no-zygote",
     ],
@@ -37,18 +38,20 @@ const scrapeLogic = async (req, res) => {
   try {
     const page = await browser.newPage()
     await page.goto(url, {timeout: 60000})
-    await page.waitForTimeout(5000)
+    // await page.waitForTimeout(5000)
     await page.waitForSelector('button.icofont-ui-search', {timeout: 60000})
     // Fill the search box
     await page.type('#pesquisaLivre', search)
-    await page.waitForTimeout(1000)
+    // await page.waitForTimeout(1000)
+    await page.waitForSelector('button.icofont-ui-search')
     await page.click('button.icofont-ui-search')
-    await page.waitForTimeout(1500)
+    // await page.waitForTimeout(1500)
     await page.waitForSelector('.navegacaoDocumento')
 
+    await page.waitForSelector('#qtdDocsPagina')
     await page.select('#qtdDocsPagina', '50')
 
-    await page.waitForTimeout(5000);
+    // await page.waitForTimeout(5000);
 
     // Wait for the search results page to load and display the results
     await page.waitForSelector('.listadocumentos > div.documento')
