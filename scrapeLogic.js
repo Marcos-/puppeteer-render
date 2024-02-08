@@ -2,6 +2,12 @@ const puppeteer = require( 'puppeteer-extra')
 require("dotenv").config();
 
 const scrapeLogic = async (res) => {
+  
+  if (req.method !== "POST") {
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
+
   const StealthPlugin = require('puppeteer-extra-plugin-stealth')
   puppeteer.use(StealthPlugin())
   
@@ -21,7 +27,12 @@ const scrapeLogic = async (res) => {
   const url = 
         'https://scon.stj.jus.br/SCON/'
 
-  const search = "Operação Lava Jato"
+  const search = req.body.search
+
+  if (!search) {
+    res.status(400).send("Bad Request: Missing search parameter");
+    return;
+  }
 
   try {
     const page = await browser.newPage()
@@ -54,7 +65,6 @@ const scrapeLogic = async (res) => {
     );
         (elements) =>
             elements.map((el) => el)
-    console.log(content);
     res.send(content);
   } catch (e) {
     console.error(e);
