@@ -24,11 +24,13 @@ const scrapeLogic = async (req, res) => {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
-
-  const url = 
-        'https://scon.stj.jus.br/SCON/'
+// https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=sumula+7&O=JT&l=50
+  // const url = 
+  //       'https://scon.stj.jus.br/SCON/'
 
   const search = req.body.search
+  const livre = search.split(' ').join('+').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const url = `https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=${livre}&O=JT&l=50`
 
   if (!search) {
     res.status(400).send("Bad Request: Missing search parameter");
@@ -39,17 +41,17 @@ const scrapeLogic = async (req, res) => {
     const page = await browser.newPage()
     await page.goto(url, {timeout: 60000})
     // await page.waitForTimeout(5000)
-    await page.waitForSelector('button.icofont-ui-search', {timeout: 60000})
-    // Fill the search box
-    await page.type('#pesquisaLivre', search)
-    // await page.waitForTimeout(1000)
-    await page.waitForSelector('button.icofont-ui-search')
-    await page.click('button.icofont-ui-search')
-    // await page.waitForTimeout(1500)
-    await page.waitForSelector('.navegacaoDocumento')
+    // await page.waitForSelector('button.icofont-ui-search', {timeout: 60000})
+    // // Fill the search box
+    // await page.type('#pesquisaLivre', search)
+    // // await page.waitForTimeout(1000)
+    // await page.waitForSelector('button.icofont-ui-search')
+    // await page.click('button.icofont-ui-search')
+    // // await page.waitForTimeout(1500)
+    // await page.waitForSelector('.navegacaoDocumento')
 
-    await page.waitForSelector('#qtdDocsPagina')
-    await page.select('#qtdDocsPagina', '50')
+    // await page.waitForSelector('#qtdDocsPagina')
+    // await page.select('#qtdDocsPagina', '50')
 
     // await page.waitForTimeout(5000);
 
