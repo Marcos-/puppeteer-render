@@ -24,7 +24,7 @@ const scrapeLogic = async (req, res) => {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
-// https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=sumula+7&O=JT&l=50
+  // https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=sumula+7&O=JT&l=50
   // const url = 
   //       'https://scon.stj.jus.br/SCON/'
 
@@ -57,16 +57,34 @@ const scrapeLogic = async (req, res) => {
 
     // Wait for the search results page to load and display the results
     await page.waitForSelector('.listadocumentos > div.documento')
-
+    
     let content = await page.$$eval(
         '.listadocumentos > div.documento',
         (elements) =>
-            elements.map((el) => ({
+            elements.map((el) => {
+              function extractUrl(str) {
+                // Find the start index of the URL (after the first single quote)
+                const startIndex = str.indexOf('(');
+                
+                // Find the end index of the URL (before the second single quote)
+                const endIndex = str.indexOf(')', startIndex);
+                
+                // Extract the substring that contains the URL
+                const url = str.substring(startIndex, endIndex);
+                
+                return url;
+              }
+              return ({
                 process: el.querySelector('.clsIdentificacaoDocumento')?.textContent || '',
                 relator: el.querySelector('div:nth-child(4) > div:nth-child(1) > div > div.docTexto > pre')?.textContent || '',
                 classe: el.querySelector('div:nth-child(4) > div:nth-child(2) > div > div.docTexto > pre')?.textContent || '',
                 ementa: el.querySelector('div:nth-child(5) > div > div > div.docTexto')?.textContent || '',
-            }))
+                acordao: el.querySelector('div:nth-child(6) > div > div > div.docTexto')?.textContent || '',
+                misc: el.querySelector('div:nth-child(7) > div > div > div.docTexto')?.textContent || '',
+                link: extractUrl(el.querySelector('div.row.clsHeaderDocumento > div.col-auto.clsIconesAcoes > a:nth-child(2)')?.href) || '',
+              })
+            }
+          )//document.querySelector("#corpopaginajurisprudencia > div.navegacaoDocumento > div.documentoWrapper > div.listadocumentos > div:nth-child(2) > div.row.clsHeaderDocumento > div.col-auto.clsIconesAcoes > a:nth-child(2)")
     );
         (elements) =>
             elements.map((el) => el)
