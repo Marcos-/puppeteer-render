@@ -49,6 +49,10 @@ const scrapeLogic = async (req, res) => {
                 
                 // Find the end index of the URL (before the second single quote)
                 const endIndex = str.indexOf(')', startIndex);
+
+                if (startIndex === -1 || endIndex === -1) {
+                  return null;
+                }
                 
                 // Extract the substring that contains the URL
                 const url = str.substring(startIndex, endIndex);
