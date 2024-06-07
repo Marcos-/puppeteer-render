@@ -62,7 +62,7 @@ const scrapeLogic = async (req, res) => {
                 ementa: el.querySelector('div:nth-child(5) > div > div > div.docTexto')?.textContent || '',
                 acordao: el.querySelector('div:nth-child(6) > div > div > div.docTexto')?.textContent || '',
                 misc: el.querySelector('div:nth-child(7) > div > div > div.docTexto')?.textContent || '',
-                link: extractUrl(el.querySelector('div.row.clsHeaderDocumento > div.col-auto.clsIconesAcoes > a:nth-child(2)')?.href) || '',
+                link: extractUrl(el.querySelector('div.row.clsHeaderDocumento > div.col-auto.clsIconesAcoes > a[aria-label="Consulta Processual"]')?.href) || '',
               })
             }
           ));
