@@ -24,9 +24,6 @@ const scrapeLogic = async (req, res) => {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
-  // https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=sumula+7&O=JT&l=50
-  // const url = 
-  //       'https://scon.stj.jus.br/SCON/'
 
   const search = req.body.search
   const livre = search.split(' ').join('+').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -40,22 +37,6 @@ const scrapeLogic = async (req, res) => {
   try {
     const page = await browser.newPage()
     await page.goto(url, {timeout: 60000})
-    // await page.waitForTimeout(5000)
-    // await page.waitForSelector('button.icofont-ui-search', {timeout: 60000})
-    // // Fill the search box
-    // await page.type('#pesquisaLivre', search)
-    // // await page.waitForTimeout(1000)
-    // await page.waitForSelector('button.icofont-ui-search')
-    // await page.click('button.icofont-ui-search')
-    // // await page.waitForTimeout(1500)
-    // await page.waitForSelector('.navegacaoDocumento')
-
-    // await page.waitForSelector('#qtdDocsPagina')
-    // await page.select('#qtdDocsPagina', '50')
-
-    // await page.waitForTimeout(5000);
-
-    // Wait for the search results page to load and display the results
     await page.waitForSelector('.listadocumentos > div.documento')
     
     let content = await page.$$eval(
@@ -64,7 +45,7 @@ const scrapeLogic = async (req, res) => {
             elements.map((el) => {
               function extractUrl(str) {
                 // Find the start index of the URL (after the first single quote)
-                const startIndex = str.indexOf('(');
+                const startIndex = str.indexOf('(') + 2;
                 
                 // Find the end index of the URL (before the second single quote)
                 const endIndex = str.indexOf(')', startIndex);
@@ -84,8 +65,7 @@ const scrapeLogic = async (req, res) => {
                 link: extractUrl(el.querySelector('div.row.clsHeaderDocumento > div.col-auto.clsIconesAcoes > a:nth-child(2)')?.href) || '',
               })
             }
-          )//document.querySelector("#corpopaginajurisprudencia > div.navegacaoDocumento > div.documentoWrapper > div.listadocumentos > div:nth-child(2) > div.row.clsHeaderDocumento > div.col-auto.clsIconesAcoes > a:nth-child(2)")
-    );
+          ));
         (elements) =>
             elements.map((el) => el)
     res.send(content);
