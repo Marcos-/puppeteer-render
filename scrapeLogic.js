@@ -44,6 +44,9 @@ const scrapeLogic = async (req, res) => {
         (elements) =>
             elements.map((el) => {
               function extractUrl(str) {
+                if (!str) 
+                  return null;
+
                 // Find the start index of the URL (after the first single quote)
                 const startIndex = str.indexOf('(') + 2;
                 
@@ -66,7 +69,7 @@ const scrapeLogic = async (req, res) => {
                 ementa: el.querySelector('div:nth-child(5) > div > div > div.docTexto')?.textContent || '',
                 acordao: el.querySelector('div:nth-child(6) > div > div > div.docTexto')?.textContent || '',
                 misc: el.querySelector('div:nth-child(7) > div > div > div.docTexto')?.textContent || '',
-                link: extractUrl(el.querySelector('div.row.clsHeaderDocumento > div.col-auto.clsIconesAcoes > a[aria-label="Consulta Processual"]')?.href) || '',
+                link: extractUrl(el.querySelector('div.row.clsHeaderDocumento > div.col-auto.clsIconesAcoes > a[aria-label="Consulta Processual"]')?.href || '') || '',
               })
             }
           ));
