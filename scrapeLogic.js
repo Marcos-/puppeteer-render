@@ -1,4 +1,16 @@
 const puppeteer = require( 'puppeteer-extra')
+
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+puppeteer.use(StealthPlugin())
+
+const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
+puppeteer.use(
+  RecaptchaPlugin({
+    provider: { id: '2captcha', token: process.env.CAPTCHA_API_KEY },
+    visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
+  })
+)
+
 require("dotenv").config();
 
 const scrapeLogic = async (req, res) => {
@@ -6,7 +18,7 @@ const scrapeLogic = async (req, res) => {
   const proxyURL = process.env.PROXY_URL
   const proxyUsername = process.env.PROXY_USERNAME
   const proxyPassword = process.env.PROXY_PASSWORD
-  
+
   if (req.method != "POST") {
     res.status(405).send("Method Not Allowed");
     return;
@@ -17,7 +29,11 @@ const scrapeLogic = async (req, res) => {
   
   const browser = await puppeteer.launch({
     headless: 'shell',
+    ignoreHTTPSErrors:true,
     args: [
+      `--proxy-server=${proxyURL}`,
+      '--ignore-certificate-errors',
+      '--ignore-certificate-errors-spki-list',
       "--disable-setuid-sandbox",
       '--disable-dev-shm-usage',
       "--no-sandbox",
@@ -40,8 +56,32 @@ const scrapeLogic = async (req, res) => {
 
   try {
     const page = await browser.newPage()
+    // await page.setRequestInterception(true);
+    // page.on('request', request => {
+    //   if (request.resourceType() === 'image') {
+    //     request.abort();
+    //   } else {
+    //     request.continue();
+    //   }
+    // });
+
+    await page.authenticate({
+      username: proxyUsername,
+      password: proxyPassword,
+    })  
+    
     await page.goto(url, {timeout: 60000})
-    await page.waitForSelector('.listadocumentos > div.documento')
+
+    if (await page.$('#recaptcha-demo-submit', {timeout: 5000})) {
+      await page.solveRecaptchas()
+
+      await Promise.all([
+        page.waitForNavigation(),
+        page.click(`#recaptcha-demo-submit`)
+      ])
+    }
+
+    await page.waitForSelector('.listadocumentos > div.documento', {timeout: 30000})
     
     let content = await page.$$eval(
         '.listadocumentos > div.documento',
