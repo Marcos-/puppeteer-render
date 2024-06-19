@@ -3,6 +3,30 @@ const puppeteer = require( 'puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
 
+require("dotenv").config();
+
+function formatStringForURL(input) {
+  if (!input || typeof input !== 'string') {
+      return '';
+  }
+
+  // Trim whitespace from both ends of the string
+  let trimmedInput = input.trim();
+
+  // Normalize the string to NFD form and remove diacritics
+  let normalized = trimmedInput.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  // Remove special characters except spaces
+  let formatted = normalized.replace(/[^a-zA-Z0-9\s]/g, '');
+
+  // Replace spaces with +
+  formatted = formatted.replace(/\s+/g, '+');
+
+  // Encode the result
+  // return encodeURIComponent(formatted);
+  return formatted;
+}
+
 const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
 puppeteer.use(
   RecaptchaPlugin({
@@ -11,13 +35,11 @@ puppeteer.use(
   })
 )
 
-require("dotenv").config();
-
 const scrapeLogic = async (req, res) => {
 
-  const proxyURL = process.env.PROXY_URL
-  const proxyUsername = process.env.PROXY_USERNAME
-  const proxyPassword = process.env.PROXY_PASSWORD
+  // const proxyURL = process.env.PROXY_URL
+  // const proxyUsername = process.env.PROXY_USERNAME
+  // const proxyPassword = process.env.PROXY_PASSWORD
 
   if (req.method != "POST") {
     res.status(405).send("Method Not Allowed");
@@ -31,9 +53,9 @@ const scrapeLogic = async (req, res) => {
     headless: 'shell',
     ignoreHTTPSErrors:true,
     args: [
-      `--proxy-server=${proxyURL}`,
-      '--ignore-certificate-errors',
-      '--ignore-certificate-errors-spki-list',
+      // `--proxy-server=${proxyURL}`,
+      // '--ignore-certificate-errors',
+      // '--ignore-certificate-errors-spki-list',
       "--disable-setuid-sandbox",
       '--disable-dev-shm-usage',
       "--no-sandbox",
@@ -46,7 +68,8 @@ const scrapeLogic = async (req, res) => {
   });
 
   const search = req.body.search
-  const livre = search.split(' ').join('+').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  // const livre = search.split(' ').join('+').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const livre = formatStringForURL(search)
   const url = `https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=${livre}&O=JT&l=50`
 
   if (!search) {
@@ -65,10 +88,10 @@ const scrapeLogic = async (req, res) => {
     //   }
     // });
 
-    await page.authenticate({
-      username: proxyUsername,
-      password: proxyPassword,
-    })  
+    // await page.authenticate({
+    //   username: proxyUsername,
+    //   password: proxyPassword,
+    // })  
     
     await page.goto(url, {timeout: 60000})
 
@@ -80,8 +103,6 @@ const scrapeLogic = async (req, res) => {
         page.click(`#recaptcha-demo-submit`)
       ])
     }
-
-    await page.waitForSelector('.listadocumentos > div.documento', {timeout: 30000})
     
     let content = await page.$$eval(
         '.listadocumentos > div.documento',
@@ -127,6 +148,8 @@ const scrapeLogic = async (req, res) => {
     res.send(content);
   } catch (e) {
     console.error(e);
+    console.error(search)
+    console.error(url)
     res.send(`Something went wrong while running Puppeteer: ${e}`);
   } finally {
     if (browser)
