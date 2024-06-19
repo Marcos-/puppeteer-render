@@ -3,8 +3,6 @@ const puppeteer = require( 'puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
 
-require("dotenv").config();
-
 function formatStringForURL(input) {
   if (!input || typeof input !== 'string') {
       return '';
@@ -27,6 +25,7 @@ function formatStringForURL(input) {
   return formatted;
 }
 
+
 const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
 puppeteer.use(
   RecaptchaPlugin({
@@ -34,6 +33,8 @@ puppeteer.use(
     visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
   })
 )
+
+require("dotenv").config();
 
 const scrapeLogic = async (req, res) => {
 
