@@ -54,9 +54,9 @@ const scrapeLogic = async (req, res) => {
     headless: 'shell',
     ignoreHTTPSErrors:true,
     args: [
-      // `--proxy-server=${proxyURL}`,
-      // '--ignore-certificate-errors',
-      // '--ignore-certificate-errors-spki-list',
+      `--proxy-server=${proxyURL}`,
+      '--ignore-certificate-errors',
+      '--ignore-certificate-errors-spki-list',
       "--disable-setuid-sandbox",
       '--disable-dev-shm-usage',
       "--no-sandbox",
@@ -89,10 +89,10 @@ const scrapeLogic = async (req, res) => {
     //   }
     // });
 
-    // await page.authenticate({
-    //   username: proxyUsername,
-    //   password: proxyPassword,
-    // })  
+    await page.authenticate({
+      username: proxyUsername,
+      password: proxyPassword,
+    })  
     
     await page.goto(url, {timeout: 60000})
 
