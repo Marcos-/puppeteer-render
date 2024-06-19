@@ -38,9 +38,9 @@ require("dotenv").config();
 
 const scrapeLogic = async (req, res) => {
 
-  // const proxyURL = process.env.PROXY_URL
-  // const proxyUsername = process.env.PROXY_USERNAME
-  // const proxyPassword = process.env.PROXY_PASSWORD
+  const proxyURL = process.env.PROXY_URL
+  const proxyUsername = process.env.PROXY_USERNAME
+  const proxyPassword = process.env.PROXY_PASSWORD
 
   if (req.method != "POST") {
     res.status(405).send("Method Not Allowed");
