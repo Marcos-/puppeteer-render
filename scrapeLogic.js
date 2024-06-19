@@ -1,7 +1,10 @@
-const puppeteer = require( 'puppeteer-extra')
+require("dotenv").config();
 
+const puppeteer = require( 'puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
+const anonymizeUaPlugin = require('puppeteer-extra-plugin-anonymize-ua');
+puppeteer.use(anonymizeUaPlugin());
 
 function formatStringForURL(input) {
   if (!input || typeof input !== 'string') {
@@ -25,7 +28,6 @@ function formatStringForURL(input) {
   return formatted;
 }
 
-
 const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
 puppeteer.use(
   RecaptchaPlugin({
@@ -33,8 +35,6 @@ puppeteer.use(
     visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
   })
 )
-
-require("dotenv").config();
 
 const scrapeLogic = async (req, res) => {
 
@@ -80,14 +80,14 @@ const scrapeLogic = async (req, res) => {
 
   try {
     const page = await browser.newPage()
-    // await page.setRequestInterception(true);
-    // page.on('request', request => {
-    //   if (request.resourceType() === 'image') {
-    //     request.abort();
-    //   } else {
-    //     request.continue();
-    //   }
-    // });
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (req.resourceType() === 'stylesheet' || req.resourceType() === 'font' || req.resourceType() === 'image') {
+          req.abort();
+      } else {
+          req.continue();
+      }
+  });
 
     await page.authenticate({
       username: proxyUsername,
