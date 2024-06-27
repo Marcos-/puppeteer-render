@@ -101,15 +101,14 @@ const scrapeLogic = async (req, res) => {
 
     if (await page.$('#turnstile-wrapper', {timeout: 5000})) {
       await page.solveRecaptchas()
-
       console.log('Recaptcha solved')
 
       await Promise.all([
-        page.waitForNavigation(),
-        page.click(`input`)
+        page.waitForSelector('#turnstile-wrapper > div > label > input[type=checkbox]', {timeout: 5000}),
+        page.click(`#turnstile-wrapper > div > label > input[type=checkbox]`)
       ])
     }
-    // document.querySelector("#blYgG5 > div > label > input[type=checkbox]")
+    // document.querySelector("#turnstile-wrapper > div > label > input[type=checkbox]")
     let content = await page.$$eval(
         '.listadocumentos > div.documento',
         (elements) =>
