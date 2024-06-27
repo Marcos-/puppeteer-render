@@ -106,10 +106,10 @@ const scrapeLogic = async (req, res) => {
 
       await Promise.all([
         page.waitForNavigation(),
-        page.click(`input[type=checkbox]`)
+        page.click(`input`)
       ])
     }
-    
+    // document.querySelector("#blYgG5 > div > label > input[type=checkbox]")
     let content = await page.$$eval(
         '.listadocumentos > div.documento',
         (elements) =>
