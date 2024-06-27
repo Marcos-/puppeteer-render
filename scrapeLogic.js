@@ -52,6 +52,7 @@ const scrapeLogic = async (req, res) => {
   
   const browser = await puppeteer.launch({
     headless: 'shell',
+    // headless: false,
     ignoreHTTPSErrors:true,
     args: [
       `--proxy-server=${proxyURL}`,
@@ -71,7 +72,7 @@ const scrapeLogic = async (req, res) => {
   const search = req.body.search
   // const livre = search.split(' ').join('+').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const livre = formatStringForURL(search)
-  const url = `https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=${livre}&O=JT&l=50`
+  const url = `https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=${livre}&O=JT&l=100`
 
   if (!search) {
     res.status(400).send("Bad Request: Missing search parameter");
@@ -82,12 +83,14 @@ const scrapeLogic = async (req, res) => {
     const page = await browser.newPage()
     await page.setRequestInterception(true);
     page.on('request', (req) => {
-      if (req.resourceType() === 'stylesheet' || req.resourceType() === 'font' || req.resourceType() === 'image') {
-          req.abort();
-      } else {
-          req.continue();
-      }
-  });
+        if (req.resourceType() === 'stylesheet' || req.resourceType() === 'font' || req.resourceType() === 'image') {
+            req.abort();
+        } else {
+            req.continue();
+        }
+    });
+
+    console.log(`Starting search for: ${search}`)
 
     await page.authenticate({
       username: proxyUsername,
@@ -96,12 +99,14 @@ const scrapeLogic = async (req, res) => {
     
     await page.goto(url, {timeout: 60000})
 
-    if (await page.$('#recaptcha-demo-submit', {timeout: 5000})) {
+    if (await page.$('#turnstile-wrapper', {timeout: 5000})) {
       await page.solveRecaptchas()
+
+      console.log('Recaptcha solved')
 
       await Promise.all([
         page.waitForNavigation(),
-        page.click(`#recaptcha-demo-submit`)
+        page.click(`input[type=checkbox]`)
       ])
     }
     
@@ -142,16 +147,19 @@ const scrapeLogic = async (req, res) => {
         (elements) =>
             elements.map((el) => el)
 
-    if (content.length === 0) {
-      res.status(404).send("No results found");
-      return;
-    }
+    console.log(`Found ${content.length} results from search: ${search}`)
+
+    // if (content.length === 0) {
+    //   res.status(404).send("No results found");
+    //   return;
+    // }
     res.send(content);
   } catch (e) {
     console.error(e);
     console.error(search)
     console.error(url)
-    res.send(`Something went wrong while running Puppeteer: ${e}`);
+    // res.send(`Something went wrong while running Puppeteer: ${e}`);
+    res.send([])
   } finally {
     if (browser)
       await browser.close();
