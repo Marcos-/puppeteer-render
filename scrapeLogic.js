@@ -103,10 +103,13 @@ const scrapeLogic = async (req, res) => {
       await page.solveRecaptchas()
       console.log('Recaptcha solved')
 
-      await Promise.all([
-        page.waitForSelector('#blYgG5 > div > label > input[type=checkbox]', {timeout: 5000}),
-        page.click(`#blYgG5 > div > label > input[type=checkbox]`)
-      ])
+      page.waitForTimeout(3100)
+      page.click(`#blYgG5 > div > label > input[type=checkbox]`)
+
+      // await Promise.all([
+      //   page.waitForSelector('#blYgG5 > div > label > input[type=checkbox]', {timeout: 5000}),
+      //   page.click(`#blYgG5 > div > label > input[type=checkbox]`)
+      // ])
     }
     
     let content = await page.$$eval(
