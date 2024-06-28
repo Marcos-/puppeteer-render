@@ -99,19 +99,19 @@ const scrapeLogic = async (req, res) => {
     
     await page.goto(url, {timeout: 60000})
 
-    if (await page.$('#turnstile-wrapper', {timeout: 5000})) {
-      await page.solveRecaptchas()
-      console.log('Recaptcha solved')
+    // if (await page.$('#turnstile-wrapper', {timeout: 5000})) {
+    //   await page.solveRecaptchas()
+    //   console.log('Recaptcha solved')
 
-      // return a screenshot
-      const screenshot = await page.screenshot({ path: 'screenshot.png' });
-      return res.send(screenshot);
+    //   // return a screenshot
+    //   const screenshot = await page.screenshot({ path: 'screenshot.png' });
+    //   return res.send(screenshot);
 
-      await Promise.all([
-        page.waitForSelector('#turnstile-wrapper > div > label > input[type=checkbox]', {timeout: 5000}),
-        page.click(`#turnstile-wrapper > div > label > input[type=checkbox]`)
-      ])
-    }
+    //   await Promise.all([
+    //     page.waitForSelector('#turnstile-wrapper > div > label > input[type=checkbox]', {timeout: 5000}),
+    //     page.click(`#turnstile-wrapper > div > label > input[type=checkbox]`)
+    //   ])
+    // }
     // document.querySelector("#turnstile-wrapper > div > label > input[type=checkbox]")
     let content = await page.$$eval(
         '.listadocumentos > div.documento',
