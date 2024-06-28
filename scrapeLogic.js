@@ -99,21 +99,28 @@ const scrapeLogic = async (req, res) => {
     
     await page.goto(url, {timeout: 60000})
 
-    if (await page.$('#blYgG5', {timeout: 5000})) {
-      await page.solveRecaptchas()
-      console.log('Recaptcha solved')
-      if (await page.$('#blYgG5 > div > label > input[type=checkbox]'))
-        console.log('Checkbox found')
-      else {
-        // take screen shot
-        const screenShot = await page.screenshot({path: 'screenshot.png', fullPage: true});
-        return res.send(screenShot);
-      }
+    if (await page.$('#blYgG5 > div > label > input[type=checkbox]', {timeout: 5000})) {
+      // await page.solveRecaptchas()
+      // console.log('Recaptcha solved')
+      // if (await page.$('#blYgG5 > div > label > input[type=checkbox]'))
+      //   console.log('Checkbox found')
+      // else {
+      //   // take screen shot
+      //   const screenShot = await page.screenshot({path: 'screenshot.png', fullPage: true});
+      //   return res.send(screenShot);
+      // }
 
-      await Promise.all([
-        page.waitForSelector('#blYgG5 > div > label > input[type=checkbox]', {timeout: 5000}),
-        page.click(`#blYgG5 > div > label > input[type=checkbox]`)
-      ])
+      // await Promise.all([
+      //   page.waitForSelector('#blYgG5 > div > label > input[type=checkbox]', {timeout: 5000}),
+      //   page.click(`#blYgG5 > div > label > input[type=checkbox]`)
+      // ])
+      const { captchas, solutions, solved, error } = await page.solveRecaptchas();
+      if (solved) {
+        console.log('CAPTCHA solved successfully');
+        // Perform the actions you need to do after solving the CAPTCHA
+      } else {
+        console.log('Error solving CAPTCHA:', error);
+      }
     }
 
     page.waitForSelector('.listadocumentos > div.documento', {timeout: 60000})
