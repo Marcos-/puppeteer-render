@@ -51,7 +51,7 @@ const scrapeLogic = async (req, res) => {
     // headless: false,
     ignoreHTTPSErrors:true,
     args: [
-      `--proxy-server=${proxyURL}`,
+      // `--proxy-server=${proxyURL}`,
       '--ignore-certificate-errors',
       '--ignore-certificate-errors-spki-list',
       "--disable-setuid-sandbox",
@@ -94,12 +94,19 @@ const scrapeLogic = async (req, res) => {
 
     console.log(`Starting search for: ${search}`)
 
-    await page.authenticate({
-      username: proxyUsername,
-      password: proxyPassword,
-    })  
+    // await page.authenticate({
+    //   username: proxyUsername,
+    //   password: proxyPassword,
+    // })  
     
     await page.goto(url, {timeout: 60000})
+
+    // if 403 error, retry
+    // const htmlTextContent = await page.evaluate(() => document.body.textContent);
+    // if (htmlTextContent.includes('403 Forbidden')) {
+    //   console.log('403 error, retrying...')
+    //   await page.goto(url, {timeout: 60000})
+    // }
 
     // 2captcha solver 
     await page.on('console', async (msg) => {
@@ -124,8 +131,6 @@ const scrapeLogic = async (req, res) => {
             return;
         }
     })
-
-    console.log('Waiting for captcha to be solved...')
 
     await page.waitForSelector('.listadocumentos > div.documento', {timeout: 60000})
     
