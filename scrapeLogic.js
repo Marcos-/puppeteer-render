@@ -68,8 +68,7 @@ const scrapeLogic = async (req, res) => {
   const search = req.body.search
   // const livre = search.split(' ').join('+').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const livre = formatStringForURL(search)
-  // const url = `https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=${livre}&O=JT&l=100`
-  const url = 'https://2captcha.com/demo/cloudflare-turnstile-challenge'
+  const url = `https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=${livre}&O=JT&l=100`
 
   if (!search) {
     res.status(400).send("Bad Request: Missing search parameter");
