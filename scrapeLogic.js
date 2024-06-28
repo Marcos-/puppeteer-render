@@ -123,7 +123,7 @@ const scrapeLogic = async (req, res) => {
       }
     }
 
-    page.waitForSelector('.listadocumentos > div.documento', {timeout: 60000})
+    await page.waitForSelector('.listadocumentos > div.documento', {timeout: 60000})
     
     let content = await page.$$eval(
         '.listadocumentos > div.documento',
