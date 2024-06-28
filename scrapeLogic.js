@@ -2,6 +2,13 @@ require("dotenv").config();
 
 const puppeteer = require( 'puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+const {Solver} = require('@2captcha/captcha-solver')
+const readFileSync = require('fs').readFileSync
+
+// const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const solver = new Solver(process.env.CAPTCHA_API_KEY)
+
 puppeteer.use(StealthPlugin())
 const anonymizeUaPlugin = require('puppeteer-extra-plugin-anonymize-ua');
 puppeteer.use(anonymizeUaPlugin());
@@ -28,14 +35,6 @@ function formatStringForURL(input) {
   return formatted;
 }
 
-const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
-puppeteer.use(
-  RecaptchaPlugin({
-    provider: { id: '2captcha', token: process.env.CAPTCHA_API_KEY },
-    visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
-  })
-)
-
 const scrapeLogic = async (req, res) => {
 
   const proxyURL = process.env.PROXY_URL
@@ -46,9 +45,6 @@ const scrapeLogic = async (req, res) => {
     res.status(405).send("Method Not Allowed");
     return;
   }
-
-  const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-  puppeteer.use(StealthPlugin())
   
   const browser = await puppeteer.launch({
     headless: 'shell',
@@ -72,7 +68,8 @@ const scrapeLogic = async (req, res) => {
   const search = req.body.search
   // const livre = search.split(' ').join('+').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const livre = formatStringForURL(search)
-  const url = `https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=${livre}&O=JT&l=100`
+  // const url = `https://scon.stj.jus.br/SCON/pesquisar.jsp?b=ACOR&livre=${livre}&O=JT&l=100`
+  const url = 'https://2captcha.com/demo/cloudflare-turnstile-challenge'
 
   if (!search) {
     res.status(400).send("Bad Request: Missing search parameter");
@@ -81,6 +78,12 @@ const scrapeLogic = async (req, res) => {
 
   try {
     const page = await browser.newPage()
+
+    // Inject the script into the page
+    const preloadFile = readFileSync('./inject.js', 'utf8');
+    await page.evaluateOnNewDocument(preloadFile);
+
+    // Block all requests except for the main document
     await page.setRequestInterception(true);
     page.on('request', (req) => {
         if (req.resourceType() === 'stylesheet' || req.resourceType() === 'font' || req.resourceType() === 'image') {
@@ -99,29 +102,31 @@ const scrapeLogic = async (req, res) => {
     
     await page.goto(url, {timeout: 60000})
 
-    if (await page.$('#blYgG5', {timeout: 5000})) {
-      // await page.solveRecaptchas()
-      console.log('Recaptcha')
-      // if (await page.$('#blYgG5 > div > label > input[type=checkbox]'))
-      //   console.log('Checkbox found')
-      // else {
-      //   // take screen shot
-      //   const screenShot = await page.screenshot({path: 'screenshot.png', fullPage: true});
-      //   return res.send(screenShot);
-      // }
+    // 2captcha solver 
+    await page.on('console', async (msg) => {
+        const txt = msg.text()
+        if (txt.includes('intercepted-params:')) {
+            const params = JSON.parse(txt.replace('intercepted-params:', ''))
+            console.log(params)
 
-      // await Promise.all([
-      //   page.waitForSelector('#blYgG5 > div > label > input[type=checkbox]', {timeout: 5000}),
-      //   page.click(`#blYgG5 > div > label > input[type=checkbox]`)
-      // ])
-      const { captchas, solutions, solved, error } = await page.solveRecaptchas();
-      if (solved) {
-        console.log('CAPTCHA solved successfully');
-        // Perform the actions you need to do after solving the CAPTCHA
-      } else {
-        console.log('Error solving CAPTCHA:', error);
-      }
-    }
+            try {
+                console.log(`Solving the captcha...`)
+                const res = await solver.cloudflareTurnstile(params)
+                console.log(`Solved the captcha ${res.id}`)
+                console.log(res)
+                await page.evaluate((token) => {
+                    cfCallback(token)
+                }, res.data)
+            } catch (e) {
+                console.log(e.err)
+                return process.exit()
+            }
+        } else {
+            return;
+        }
+    })
+
+    console.log('Waiting for captcha to be solved...')
 
     await page.waitForSelector('.listadocumentos > div.documento', {timeout: 60000})
     
