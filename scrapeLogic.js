@@ -103,14 +103,22 @@ const scrapeLogic = async (req, res) => {
       await page.solveRecaptchas()
       console.log('Recaptcha solved')
 
-      page.waitForTimeout(3100)
-      page.click(`#blYgG5 > div > label > input[type=checkbox]`)
+      page.waitForSelector('#blYgG5 > div > label > input[type=checkbox]', {timeout: 5000})
+      if (await page.$('#blYgG5 > div > label > input[type=checkbox]'))
+        page.click(`#blYgG5 > div > label > input[type=checkbox]`)
+      else {
+        // take screen shot
+        const screenShot = await page.screenshot({path: 'screenshot.png', fullPage: true});
+        return res.send(screenShot);
+      }
 
       // await Promise.all([
       //   page.waitForSelector('#blYgG5 > div > label > input[type=checkbox]', {timeout: 5000}),
       //   page.click(`#blYgG5 > div > label > input[type=checkbox]`)
       // ])
     }
+
+    page.waitForSelector('.listadocumentos > div.documento', {timeout: 60000})
     
     let content = await page.$$eval(
         '.listadocumentos > div.documento',
