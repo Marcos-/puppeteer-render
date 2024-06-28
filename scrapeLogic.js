@@ -103,6 +103,10 @@ const scrapeLogic = async (req, res) => {
       await page.solveRecaptchas()
       console.log('Recaptcha solved')
 
+      // return a screenshot
+      const screenshot = await page.screenshot({ path: 'screenshot.png' });
+      return res.send(screenshot);
+
       await Promise.all([
         page.waitForSelector('#turnstile-wrapper > div > label > input[type=checkbox]', {timeout: 5000}),
         page.click(`#turnstile-wrapper > div > label > input[type=checkbox]`)
