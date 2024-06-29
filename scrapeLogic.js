@@ -5,7 +5,7 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const {Solver} = require('@2captcha/captcha-solver')
 const readFileSync = require('fs').readFileSync
 
-// const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const solver = new Solver(process.env.CAPTCHA_API_KEY)
 
@@ -99,13 +99,13 @@ const scrapeLogic = async (req, res) => {
       password: proxyPassword,
     })  
     
-    await page.goto(url, {timeout: 60000})
+    await page.goto(url, {timeout: 120000})
 
     // if 403 error, retry
     const htmlTextContent = await page.evaluate(() => document.body.textContent);
     if (htmlTextContent.includes('403 Forbidden')) {
       console.log('403 error, retrying...')
-      await page.goto(url, {timeout: 60000})
+      await page.goto(url, {timeout: 120000})
     }
 
     // 2captcha solver 
@@ -132,7 +132,7 @@ const scrapeLogic = async (req, res) => {
         }
     })
 
-    await page.waitForSelector('.listadocumentos > div.documento', {timeout: 60000})
+    await page.waitForSelector('.listadocumentos > div.documento', {timeout: 120000})
     
     let content = await page.$$eval(
         '.listadocumentos > div.documento',
